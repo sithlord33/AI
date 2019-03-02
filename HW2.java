@@ -12,20 +12,19 @@ public class HW2 {
 
     public static void main(String[] args) {
         String path = "C:\\Users\\ricar\\eclipse-workspace\\Artificial_Intelligence\\src\\search_and_pathfinding\\myMap.txt";
-        int[][] map = readFile(path);
-        Node[] graph = new Node[map.length * map[0].length];
+        Node[][] map = readFile(path);
         buildGraph(map, start);
     }
 
-    private static int[][] readFile(String arg) {
-        int[][] map = new int[0][];
+    private static Node[][] readFile(String arg) {
+        Node[][] map = new Node[0][];
         try (BufferedReader br = new BufferedReader(new FileReader(arg))) {
             start = new int[2];
             goal = new int[2];
 
             String dimString = br.readLine();
             String[] split = dimString.split(" ");
-            map = new int[Integer.parseInt(split[0])][Integer.parseInt(split[1])];
+            map = new Node[Integer.parseInt(split[0])][Integer.parseInt(split[1])];
 
             String startString = br.readLine();
             String[] startSplit = startString.split(" ");
@@ -42,7 +41,7 @@ public class HW2 {
             while ((line = br.readLine()) != null) {
                 split = line.split(" ");
                 for (int j = 0; j < split.length; j++)
-                    map[i][j] = Integer.parseInt(split[j]);
+                    map[i][j] = new Node(i, j, Integer.parseInt(split[j]));
                 i++;
             }
         } catch (FileNotFoundException e) {
@@ -53,84 +52,42 @@ public class HW2 {
         return map;
     }
 
-    public static Node buildGraph(int[][] map, int[] start) {
-        int x = start[1];
-        int y = start[0];
+    public static Node buildGraph(Node[][] map, int[] start) {
+        int x = start[0];
+        int y = start[1];
         int width = map.length;
-        boolean[] graphed = new boolean[map.length * map[0].length];
-        boolean all = false;
+        int size = map.length * map[0].length;
+        boolean[] graphed = new boolean[size];
 
-        Node head = new Node(x, y, map[y][x]);
-        graphed[y + x * width] = true;
-        Node aux = new Node();
-        aux = head;
+        Node head = map[x][y];
+        Node aux = head;
 
-        findChildren(map, x, y, aux);
-
-        Queue<Node> queue = new LinkedList<>();
-        while (!areAllTrue(graphed)) {
-            for (Node c : aux.children)
-                queue.add(c);
-            for (Node c : queue){
-                aux = c;
-                queue.remove();
-                x = aux.x;
-                y = aux.y;
-                if (graphed[y + x * width])
-                    break;
-                graphed[y + x * width] = true;
-                findChildren(map, x, y, aux);
+        Queue<Node> queue = new ArrayDeque<>();
+        queue.add(aux);
+        while (!queue.isEmpty()) {
+            aux = queue.remove();
+            if (!graphed[aux.x + aux.y * width]) {
+                findChildren(map, aux);
+                graphed[aux.x + aux.y * width] = true;
+                for (Node c : aux.children)
+                    if (!graphed[c.x + c.y * width])
+                        queue.add(c);
             }
         }
         return head;
     }
 
-    public static void findChildren(int[][] map, int x, int y, Node aux) {
-        if (x - 1 < 0 && y - 1 < 0) {
-            aux.children.add(new Node(x + 1, y, map[y][x + 1]));
-            aux.children.add(new Node(x, y + 1, map[y + 1][x]));
-        } else if (x + 1 < 0 && y - 1 < 0) {
-            aux.children.add(new Node(x - 1, y, map[y][x - 1]));
-            aux.children.add(new Node(x, y + 1, map[y + 1][x]));
-        } else if (x - 1 < 0 && y + 1 < 0) {
-            aux.children.add(new Node(x + 1, y, map[y][x + 1]));
-            aux.children.add(new Node(x, y - 1, map[y - 1][x]));
-        } else if (x + 1 < 0 && y + 1 < 0) {
-            aux.children.add(new Node(x - 1, y, map[y][x - 1]));
-            aux.children.add(new Node(x, y - 1, map[y - 1][x]));
-        } else if (x - 1 < 0) {
-            aux.children.add(new Node(x + 1, y, map[y][x + 1]));
-            aux.children.add(new Node(x, y - 1, map[y - 1][x]));
-            aux.children.add(new Node(x, y + 1, map[y + 1][x]));
-        } else if (x + 1 < 0) {
-            aux.children.add(new Node(x - 1, y, map[y][x - 1]));
-            aux.children.add(new Node(x, y - 1, map[y - 1][x]));
-            aux.children.add(new Node(x, y + 1, map[y + 1][x]));
-        } else if (y - 1 < 0) {
-            aux.children.add(new Node(x - 1, y, map[y][x - 1]));
-            aux.children.add(new Node(x + 1, y, map[y][x + 1]));
-            aux.children.add(new Node(x, y + 1, map[y + 1][x]));
-        } else if (y + 1 < 0) {
-            aux.children.add(new Node(x - 1, y, map[y][x - 1]));
-            aux.children.add(new Node(x + 1, y, map[y][x + 1]));
-            aux.children.add(new Node(x, y - 1, map[y - 1][x]));
-        } else {
-            aux.children.add(new Node(x - 1, y, map[y][x - 1]));
-            aux.children.add(new Node(x + 1, y, map[y][x + 1]));
-            aux.children.add(new Node(x, y - 1, map[y - 1][x]));
-            aux.children.add(new Node(x, y + 1, map[y + 1][x]));
-        }
-    }
-
-    private static boolean areAllTrue(boolean[] graphed) {
-        for (boolean b : graphed)
-            if (!b)
-                return false;
-        return true;
-    }
-
-    public static void auxBuild(Node head, int[][] map) {
-
+    public static void findChildren(Node[][] map, Node aux) {
+        int x = aux.x;
+        int y = aux.y;
+        if (x != 0)
+            aux.children.add(map[x - 1][y]);
+        if (x != map.length - 1)
+            aux.children.add(map[x + 1][y]);
+        if (y != 0)
+            aux.children.add(map[x][y - 1]);
+        if (y != map[0].length - 1)
+            aux.children.add(map[x][y + 1]);
     }
 
     public static void BFS(Node[] map) {

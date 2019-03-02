@@ -8,11 +8,11 @@ public class Node {
     int weight;
     ArrayList<Node> children;
 
-    public Node(){
+    public Node() {
 
     }
 
-    public Node(int x, int y, int weight){
+    public Node(int x, int y, int weight) {
         this.x = x;
         this.y = y;
         this.weight = weight;
