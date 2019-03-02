@@ -1,75 +1,53 @@
 package pathfinding;
 
-import javax.swing.plaf.nimbus.State;
+import search_and_pathfinding.Node;
+
+import java.awt.*;
+import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Map;
 
-public class BreadthFirstSearch extends SearchAlgorithm {
-
-    public BreadthFirstSearch(Map map) {
-        super( map);
-    }
-
-    private LinkedList<search_and_pathfinding.Node> frontier;
-    private search_and_pathfinding.Node currentNode = null;
-
-    @Override
-    public void setup() {
-        search_and_pathfinding.Node startingNode = currentMap.getStart();
-        frontier = new LinkedList<search_and_pathfinding.Node>();
-        frontier.add(startingNode);
-    }
-
-    @Override
-    public void loop() {
-        if (frontier.isEmpty()) {
-            currentState = State.FAILURE;
-            return;
+public class BFS {
+    public LinkedList constructPath(Node node) {
+        LinkedList path = new LinkedList();
+        while (node.Parent != null) {
+            path.addFirst( node );
+            node = (Node) node.Parent;
         }
-        currentNode = frontier.pop();
-        currentNode.isExplored = true;
-        this.currentExpandedNodes++;
-        this.currentNodesInMemory++; // The current node is in memory
+        return path;
+    }
 
-        // Get the neighbors and add them to the frontier
-        for (search_and_pathfinding.Node next : currentMap.neighborsAround(currentNode.position)) {
-            this.currentNodesInMemory++; // Add Node next to memory count
+    public List search(search_and_pathfinding.Node startNode, search_and_pathfinding.Node goalNode) {
+        // list of visited nodes
+        LinkedList closedList = new LinkedList();
 
-            // Can only go to node if it's not explored and not blocked
-            if (!next.isExplored && next.cost != 0) {
-                next.parent = currentNode;
+        // list of nodes to visit (sorted)
+        LinkedList openList = new LinkedList();
+        openList.add( startNode );
+        startNode.Parent = null;
 
-                // Check if we reached the goal
-                if (next.equals(currentMap.getGoal())) {
-                    currentNode = next;
-                    currentState = State.SUCCESS;
-                    break;
+        while (!openList.isEmpty()) {
+            search_and_pathfinding.Node node = (search_and_pathfinding.Node) openList.removeFirst();
+            if (node == goalNode) {
+                // path found!
+                Node goal;
+                return constructPath( goal );
+            } else {
+                closedList.add( node );
+
+                // add neighbors to the open list
+                Iterator i = node.neighbors.iterator();
+                while (i.hasNext()) {
+                    Node neighborNode = (Node) i.next();
+                    if (!closedList.contains( neighborNode ) &&
+                            !openList.contains( neighborNode )) {
+                        neighborNode.Parent = node;
+                        openList.add( neighborNode );
+                    }
                 }
-
-                frontier.push(next);
             }
         }
 
-        // Add the frontier nodes that are in memory
-        this.currentNodesInMemory += frontier.size();
-    }
-
-    @Override
-    public void finish() {
-        // Calculate the final path cost
-        int finalCost = 0;
-        search_and_pathfinding.Node temp = currentNode;
-        while (temp != null) {
-            finalCost += temp.cost;
-            temp = temp.parent;
-        }
-
-        this.currentPathCost = finalCost;
-    }
-
-
-    @Override
-    public search_and_pathfinding.Node getGoalWithPath() {
-        return currentNode;
+        // no path found
+        return null;
     }
 }
