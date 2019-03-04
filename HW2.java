@@ -19,13 +19,15 @@ public class HW2 {
         String path = "C:\\Users\\ricar\\eclipse-workspace\\Artificial_Intelligence\\src\\search_and_pathfinding\\myMap.txt";
         Node[][] map = readFile(path);
         buildGraph(map);
+        int length = map.length;
+        int height = map[0].length;
         Node startNode = map[start[0]][start[1]];
         Node goalNode = map[goal[0]][goal[1]];
 
 
         //BFS(startNode, goalNode);
         System.out.println();
-        IDS(startNode, goalNode);
+        //IDS(startNode, goalNode);
         AS(startNode, goalNode);
     }
 
@@ -118,8 +120,8 @@ public class HW2 {
      * Uses a queue to enqueue every node visited and once it dequeues a node. it enqueues all of its children.
      * Stops once the goal node is found.
      *
-     * @param startNode
-     * @param goalNode
+     * @param startNode starting node
+     * @param goalNode  goal node
      */
     public static void BFS(Node startNode, Node goalNode) {
         double tStart = System.currentTimeMillis();
@@ -151,8 +153,8 @@ public class HW2 {
      * Applies Iterative Deepening Search
      * Uses Helper method DLS to change the depth of the search every iteration.
      *
-     * @param startNode
-     * @param goalNode
+     * @param startNode starting node
+     * @param goalNode  goal node
      */
     public static void IDS(Node startNode, Node goalNode) {
         double tStart = System.currentTimeMillis();
@@ -171,33 +173,68 @@ public class HW2 {
     }
 
     /**
+     * Depth Limited Search
      * Helper method for Iterative Deepening Search.
      *
-     * @param node
-     * @param depth
-     * @param goalNode
+     * @param aux      start node of the depth limited search
+     * @param depth    max depth the graph will reach
+     * @param goalNode goal node
      * @return
      */
-    public static Node DLS(Node node, int depth, Node goalNode) {
-        System.out.println(node.x + " " + node.y);
-        if (depth == 0 && node.equals(goalNode))
-            return node;
+    public static Node DLS(Node aux, int depth, Node goalNode) {
+        System.out.println("x = " + aux.x + " y = " + aux.y);
+        if (depth == 0 && aux.equals(goalNode))
+            return aux;
         if (depth > 0)
-            for (Node c : node.children) {
-                Node found = DLS(c, depth - 1, goalNode);
-                if (found != null){
-                    return found;
+            for (Node c : aux.children) {
+                if (c.weight != 0 && !c.visited) {
+                    Node found = DLS(c, depth - 1, goalNode);
+                    if (found != null)
+                        return found;
                 }
             }
         return null;
     }
 
+    /**
+     * Applies A* search algorithm
+     * f(n) = g(n) + h(n), where:
+     * g(n) is the cost so far to reach the goal node n
+     * h(n) is the estimated cost to the goal node from current node. In this case Manhattan Distance
+     * f(n) is the total cost of the path to reach the goal node
+     *
+     * @param startNode starting node
+     * @param goalNode  goal node
+     */
     public static void AS(Node startNode, Node goalNode) {
+        double tStart = System.currentTimeMillis();
+        PriorityQueue<Node> pQ = new PriorityQueue<>();
+        startNode.totalCost = manhattanDistance(startNode, goalNode);
+        pQ.add(startNode);
 
+        while (!pQ.isEmpty()) {
+            Node aux = pQ.remove();
+            System.out.println("x = " + aux.x + " y = " + aux.y + " weight: " + aux.weight + " heuristic: " + manhattanDistance(aux, goalNode) + " total_cost: " + aux.totalCost);
+            if (aux.equals(goalNode) && (pQ.isEmpty() || pQ.peek().totalCost >= aux.totalCost)) {
+                System.out.println("Goal Node Found");
+                break;
+            }
+            for (Node c : aux.children) {
+                if (c.weight != 0 && !c.visited) {
+                    c.visited = true;
+                    c.totalCost = manhattanDistance(c, goalNode) + c.weight + aux.weight;
+                    pQ.add(c);
+                }
+            }
+        }
+
+        double tEnd = System.currentTimeMillis();
+        double tTotal = tEnd - tStart;
+        System.out.println("It took " + tTotal + " milliseconds");
     }
 
-    public static int manhattanDistance(int[] start, int[] goal) {
-        int distance = Math.abs(goal[0] - start[0]) + Math.abs(goal[1] - start[1]);
+    public static int manhattanDistance(Node current, Node goal) {
+        int distance = Math.abs(goal.x - current.x) + Math.abs(goal.y - current.y);
         return distance;
     }
 }
