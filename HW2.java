@@ -178,11 +178,11 @@ public class HW2 {
      * @return
      */
     public static Node DLS(Node node, int depth, Node goalNode) {
+        System.out.println(node.x + " " + node.y);
         if (depth == 0 && node.equals(goalNode))
             return node;
         if (depth > 0)
             for (Node c : node.children) {
-                System.out.println(c.x + " " + c.y);
                 Node found = DLS(c, depth - 1, goalNode);
                 if (found != null){
                     return found;
@@ -192,7 +192,7 @@ public class HW2 {
     }
 
     public static void AS(Node startNode, Node goalNode) {
-        
+
     }
 
     public static int manhattanDistance(int[] start, int[] goal) {
