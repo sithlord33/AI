@@ -149,7 +149,8 @@ public class HW2 {
 
     /**
      * Applies Iterative Deepening Search
-     * USes Helper method DLS to change the depth of the search every iteration.
+     * Uses Helper method DLS to change the depth of the search every iteration.
+     *
      * @param startNode
      * @param goalNode
      */
