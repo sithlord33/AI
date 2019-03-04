@@ -114,10 +114,17 @@ public class HW2 {
             aux.children.add(map[x][y + 1]);
     }
 
+    /**
+     * Uses a queue to enqueue every node visited and once it dequeues a node. it enqueues all of its children.
+     * Stops once the goal node is found.
+     *
+     * @param startNode
+     * @param goalNode
+     */
     public static void BFS(Node startNode, Node goalNode) {
+        double tStart = System.currentTimeMillis();
         Queue<Node> q = new LinkedList<>();
 
-        double tStart = System.currentTimeMillis();
         q.add(startNode);
         startNode.visited = true;
 
@@ -140,34 +147,52 @@ public class HW2 {
         System.out.println("It took " + tTotal + " milliseconds");
     }
 
+    /**
+     * Applies Iterative Deepening Search
+     * USes Helper method DLS to change the depth of the search every iteration.
+     * @param startNode
+     * @param goalNode
+     */
     public static void IDS(Node startNode, Node goalNode) {
-        Stack<Node> s = new Stack<>();
-
         double tStart = System.currentTimeMillis();
-        s.push(startNode);
-        startNode.visited = true;
 
-        while (!s.isEmpty()) {
-            Node aux = s.pop();
-            System.out.println("x = " + aux.x + " y = " + aux.y);
-            if (aux.equals(goalNode)) {
+        for (int depth = 0; depth < Integer.MAX_VALUE; depth++) {
+            Node found = DLS(startNode, depth, goalNode);
+            if (found != null) {
                 System.out.println("Goal Node Found!");
                 break;
             }
-            for (Node c : aux.children)
-                if (c.weight != 0 && !c.visited) {
-                    c.visited = true;
-                    s.push(c);
-                }
         }
 
         double tEnd = System.currentTimeMillis();
         double tTotal = tEnd - tStart;
         System.out.println("It took " + tTotal + " milliseconds");
+    }
 
+    /**
+     * Helper method for Iterative Deepening Search.
+     *
+     * @param node
+     * @param depth
+     * @param goalNode
+     * @return
+     */
+    public static Node DLS(Node node, int depth, Node goalNode) {
+        if (depth == 0 && node.equals(goalNode))
+            return node;
+        if (depth > 0)
+            for (Node c : node.children) {
+                System.out.println(c.x + " " + c.y);
+                Node found = DLS(c, depth - 1, goalNode);
+                if (found != null){
+                    return found;
+                }
+            }
+        return null;
     }
 
     public static void AS(Node startNode, Node goalNode) {
+        
     }
 
     public static int manhattanDistance(int[] start, int[] goal) {
